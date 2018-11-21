@@ -11,11 +11,13 @@ int spawn(char* programa, char** arg_list)
 
     if (pid_hijo !=0)
     {
+        // PROCESO PADRE
         return pid_hijo;
     }
     else 
     {
-        /*
+        /* PROCESO HIJO
+         *
          * Ejecuta el programa citado con la lista de argumentos  
          * hasta que se encuentre con un NULL
          */
