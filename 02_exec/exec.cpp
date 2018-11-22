@@ -9,9 +9,10 @@ int spawn(char* programa, char** arg_list)
 
     pid_hijo = fork();
 
-    if (pid_hijo !=0)
+    if (pid_hijo != 0)
     {
         // PROCESO PADRE
+        printf("Soy el proceso padre\n");
         return pid_hijo;
     }
     else 
@@ -21,6 +22,7 @@ int spawn(char* programa, char** arg_list)
          * Ejecuta el programa citado con la lista de argumentos  
          * hasta que se encuentre con un NULL
          */
+        printf("Soy el proceso hijo");
         execvp(programa, arg_list);
         // SI DA ERROR, TE MUESTRA POR LA TUBERÍA DE ERRORES LO SIGUIENTE
         fprintf(stderr, "Ha ocurrido un error en execvp\n");
