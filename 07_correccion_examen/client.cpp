@@ -1,56 +1,84 @@
-#include <arpa/inet.h>
-#include <stdio.h>
-#include <string.h>
+#include <sys/types.h>
 #include <sys/socket.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <netinet/in.h>
+#include <signal.h>
 #include <unistd.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <stdio_ext.h>
 
+// DEFINIMOS CONSTANTES Y PUERTO
 #define GRANDE 255
-#define N 5
-int main(int argc, char* argv[])
+#define PUERTO 1998
+#define N 100
+
+int main(int argc, char *argv[])
 {
-	int sock, i, temp;
-	struct sockaddr_in server;
-	char server_reply[GRANDE];
-	char buffer[GRANDE];
+  int fd;
+  char palabra[N];
+  char buffer[GRANDE];
 
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == -1) {
-		printf("No se puede crear el socket");
-	}
-	puts("Socket creado correctamente");
+  // RELLENAMOS EL BUFFER DE '\0'
+  memset(buffer, '\0', sizeof(buffer));
 
-	server.sin_addr.s_addr = inet_addr("127.0.0.1");
-	server.sin_family = AF_INET;
-	server.sin_port = htons(8880);
+  // CREAMOS LA ESTUCTURA DEL SOCKET
+  struct sockaddr_in sas;
 
-	if (connect(sock, (struct sockaddr*)&server, sizeof(server)) < 0) {
-		perror("¡Error! La conexión ha fallado");
-		return 1;
-	}
+  // CREAMOS EL SOCKET
+  fd = socket(AF_INET, SOCK_STREAM, 0);
 
-	puts("¡Conectado!\n");
+  sas.sin_family = AF_INET; // IPv4
+  sas.sin_addr.s_addr = inet_addr("127.0.0.1"); // LOCALHOST
+  sas.sin_port = htons(PUERTO);
 
-	if (send(sock, &buffer, N * sizeof(char), 0) < 0) {
-		puts("¡Envío Fallido!");
-		return 1;
-	}
+  socklen_t len = sizeof(sas);
 
-	if (recv(sock, &server_reply, N * sizeof(char), 0) < 0) {
-		puts("recv failed");
-		return 0;
-	}
+  int resultado;
 
-  for (i = 0; i < N; i++) {
-		printf("Introduce una palabra: ");
-    scanf("%s", &buffer[strlen(buffer)+1]);
-	}
+  // REALIZAMOS LA CONEXIÓN DEL SOCKET
+  resultado = connect(fd, (struct sockaddr *) &sas, len);
+
+  // TRATAMOS EL ERROR
+  if(resultado == -1)
+  {
+    perror("Ha ocurrido un error en Matrix");
+    exit(1);
+  }
+
+  bool valor = false;
+
+  do
+  {
+    int tamano = 0;
+    __fpurge(stdin);
+
+    printf("Introduce una palabra: ");
+    fgets(palabra, N, stdin);
+
+    // CALCULAMOS LA LONGITUD
+    tamano = strlen(palabra);
+
+    // COMPARAMOS LAS CADENAS
+    if(strcmp(palabra, "salir\n")==0)
+    {
+      valor = true;
+    }
+    else
+    {
+      // UNE LA CADENA Y SOBREESCRIBE EL CARARCTER '\0'
+      strncat(buffer, palabra, tamano);
+    }
+  }while(valor == false);
+
+  // ENVIAMOS LA LISTA RECIBIDA AL SERVER
+  send(fd, buffer, strlen(buffer), 0);
+
+  // RECIBIMOS LA LISTA Y SE IMPRIME
+  recv(fd, buffer, strlen(buffer), 0);
   printf("%s", buffer);
 
-	puts("Respuesta del servidor :\n");
-	for (i = 0; i < N; i++) {
-		printf("%d\n", server_reply[i]);
-	}
-
-	close(sock);
-	return 0;
+  // CERRAMOS
+  close(fd);
 }
