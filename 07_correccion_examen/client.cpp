@@ -42,8 +42,9 @@ int main(int argc, char* argv[])
 
   for (i = 0; i < N; i++) {
 		printf("Introduce una palabra: ");
-    scanf("%s", buffer);
+    scanf("%s", &buffer[strlen(buffer)+1]);
 	}
+  printf("%s", buffer);
 
 	puts("Respuesta del servidor :\n");
 	for (i = 0; i < N; i++) {
